@@ -292,3 +292,4 @@ __pycache__/
 # 
 client_secret.json
 Migrations
+/MyMap/migrationCmdExample.txt
