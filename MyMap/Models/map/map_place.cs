@@ -11,7 +11,7 @@ namespace MyMap.Models.Map
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long id { get; set; }
         public long map_id { get; set; }
-        public int type { get; set; }
+        public MapPlaceType type { get; set; }
         public string name { get; set; }
         public long? thumbnail_id { get; set; }
         public string? location { get; set; }

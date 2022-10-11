@@ -1,0 +1,56 @@
+﻿@model MyMap.ViewModels.Map.MapInfoViewModel
+@{
+    ViewData["Title"] = "Map-" + Model.mapName;
+}
+
+@section subHeader {
+    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <div class="container-fluid">
+            <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1"></ul>
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">CreateMap</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+}
+
+    <div class="text-center">
+        <h1 class="display-4">@Model.mapName</h1>
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">PlaceName</th>
+                <th scope="col">PlaceType</th>
+                <th scope="col">CreateTime</th>
+                <th scope="col">EditTime</th>
+                <th scope="col">talks</th>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (Model.placeList != null && Model.placeList.Any())
+        {
+            @foreach (var place in Model.placeList)
+            {
+                <tr>
+                    <td>@place.index</td>
+                    <td>PlaceName</td>
+                    <td>PlaceType</td>
+                    <td>CreateTime</td>
+                    <td>EditTime</td>
+                    <td>talks</td>
+                    <td></td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Google;
 using MyMap.Data;
 using MyMap.Models.identity;
+using MyMap.Helper;
 
 namespace MyMap
 {
@@ -12,7 +13,7 @@ namespace MyMap
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            
+
 
             // Add services to the container.
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
@@ -34,6 +35,9 @@ namespace MyMap
 
 
             builder.Services.AddControllersWithViews();
+
+            // DI
+            builder.Services.AddScoped<IUploadFile, UploadFile>();
 
             var app = builder.Build();
 

@@ -13,8 +13,8 @@ namespace MyMap.Models.Map
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long id { get; set; }
         public long user_id { get; set; }
-        public int type { get; set; }
-        public int visbility { get; set; }
+        public MapType type { get; set; }
+        public visibility visbility { get; set; }
         public string name { get; set; }
         public DateTime create_time { get; set; }
         public DateTime? edit_time { get; set; }
