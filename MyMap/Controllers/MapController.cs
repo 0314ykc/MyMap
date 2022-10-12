@@ -89,7 +89,7 @@ namespace MyMap.Controllers
             }
 
             var mapPlaceLists = _context.map_placeModels
-                .Where(x => x.id == id)
+                .Where(x => x.map_id == id)
                 .Select(x => new MapPlaceListItem
                 {
                     index = 0,
@@ -111,6 +111,7 @@ namespace MyMap.Controllers
 
             var result = new MapInfoViewModel
             {
+                mapId = id,
                 mapName = _context.mapModels.Where(x => x.id == id).Select(x => x.name).FirstOrDefault(),
                 placeList = mapPlaceLists
             };
@@ -119,17 +120,18 @@ namespace MyMap.Controllers
         }
 
         [HttpPost]
-        public async Task<bool> CreateMapPlaceAsync(long map_id, string name, string description, MapPlaceType type, int rating, long? thumbnail_id, bool haveBeenTo = false, string? coordinate = null, string? location = null)
+        public async Task<IActionResult> CreateMapPlaceAsync(long map_id, [FromForm] List<IFormFile>? thumbail, string name, string description, MapPlaceType type, int rating, bool haveBeenTo = false, string? coordinate = null, string? location = null)
         {
             user user = await _userManager.GetUserAsync(User); // get user's all data
             if (user == null)
             {
-                return false;
+                return LocalRedirect("/Identity/Account/Login");
             }
 
             if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(description))
             {
-                return false;
+                TempData["errMsg"] = "some fileds are required.";
+                return RedirectToAction("Info","Map");
             }
             else
             {
@@ -143,14 +145,20 @@ namespace MyMap.Controllers
                     coordinate = coordinate,
                     location = location,
                     rating = rating,
-                    thumbnail_id = thumbnail_id,
                     create_time = DateTime.Now,
                 };
+
+                if (thumbail != null)
+                {
+                    var imgIds = await this.UploadImagesAsync(thumbail);
+                    newMapPlace.thumbnail_id = (imgIds == null) ? null : imgIds.FirstOrDefault();
+                }
+
                 _context.map_placeModels.Add(newMapPlace);
                 _context.SaveChanges();
             }
 
-            return true;
+            return RedirectToAction("Info","Map");
         }
 
         [HttpPost]
@@ -183,7 +191,7 @@ namespace MyMap.Controllers
         }
 
         [HttpPost]
-        public async Task<object> UploadImagesAsync([FromForm] List<IFormFile> imgs)
+        public async Task<List<long>> UploadImagesAsync([FromForm] List<IFormFile> imgs)
         {
             user user = await _userManager.GetUserAsync(User);
 
@@ -243,6 +251,68 @@ namespace MyMap.Controllers
 
             return ids;
         }
+
+        //[HttpPost]
+        //public async Task<object> UploadImagesAsync([FromForm] List<IFormFile> imgs)
+        //{
+        //    user user = await _userManager.GetUserAsync(User);
+
+        //    if (user == null)
+        //    {
+        //        return null;
+        //    }
+
+        //    List<long> ids = new List<long>();
+
+        //    #region multiple upload
+        //    if (imgs != null && imgs.Any())
+        //    {
+        //        foreach (var img in imgs)
+        //        {
+        //            if (img != null)
+        //            {
+        //                var supportedContentTypes = new[] { "image/png", "image/jpeg" };
+
+        //                //if (!supportedContentTypes.Contains(img.ContentType))
+        //                //{
+        //                //    TempData["errorMessage"] = "不支援的檔案格式。";
+        //                //    return RedirectToAction("ProfileFiles", new { id = profileFilesUploadModel.personId });
+        //                //}
+
+        //                var uploadfile = new UploadFileModel
+        //                {
+        //                    file = img,
+        //                    folder = _conf["UploadPath:Image"],
+        //                };
+
+        //                var fileName = _upload.UploadDataWithOriginalFileName(uploadfile);
+        //                if (fileName == null)
+        //                {
+        //                    Console.WriteLine("upload fail, file name is null");
+        //                    ids.Add(0);
+        //                    continue;
+        //                }
+
+        //                var uploadedFilePath = uploadfile.folder + "/" + fileName;
+
+        //                imageModel newImg = new imageModel()
+        //                {
+        //                    user_id = user.Id,
+        //                    file_name = fileName,
+        //                    file_path = uploadedFilePath,
+        //                    create_time = DateTime.Now
+        //                };
+        //                _context.imageModels.Add(newImg);
+        //                await _context.SaveChangesAsync();
+
+        //                ids.Add(newImg.id);
+        //            }
+        //        }
+        //    }
+        //    #endregion
+
+        //    return ids;
+        //}
 
 
         public class UploadFileModel

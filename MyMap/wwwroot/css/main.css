@@ -1,3 +1,8 @@
 ﻿.a-no-under-line {
     text-decoration: none;
 }
+
+.input-required.col-form-label::before {
+    content: "*";
+    color: red;
+}

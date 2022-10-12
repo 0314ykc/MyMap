@@ -9,6 +9,7 @@ namespace MyMap.ViewModels.Map
 {
     public class MapInfoViewModel
     {
+        public long mapId { get; set; }
         public string? mapName { get; set; }
         public ICollection<MapPlaceListItem> placeList { get; set; }
     }
