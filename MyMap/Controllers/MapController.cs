@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
@@ -10,9 +12,11 @@ using MyMap.Models.identity;
 using MyMap.Models.Map;
 using MyMap.Models.others;
 using MyMap.ViewModels.Map;
+using System.Xml.Linq;
 
 namespace MyMap.Controllers
 {
+    [Authorize]
     public class MapController : Controller
     {
         private readonly ILogger<HomeController> _logger;
@@ -33,17 +37,12 @@ namespace MyMap.Controllers
         public async Task<IActionResult> IndexAsync()
         {
             user user = await _userManager.GetUserAsync(User); // get user's all data
-            if (user == null)
-            {
-                return LocalRedirect("/Identity/Account/Login");
-            }
 
             var mapList = _context.mapModels
                 .Where(x => x.user_id == user.Id)
-                .Select(m => new MapIndexListItem { index = 1, mapId = m.id, name = m.name, type = m.type, createTime = m.create_time })
-                .ToList()
-                .Select((m, i) => new MapIndexListItem { index = i + 1, mapId = m.mapId, name = m.name, type = m.type, createTime = m.createTime })
+                .Select(m => new MapIndexListItem { mapId = m.id, name = m.name, type = m.type, visibility = m.visbility, createTime = m.create_time, editTime = m.edit_time })
                 .ToList();
+            mapList = mapList.Select((x, i) => { x.index = i+1; return x; }).ToList();
 
             MapIndexViewModel result = new MapIndexViewModel { list = mapList };
 
@@ -51,17 +50,14 @@ namespace MyMap.Controllers
         }
 
         [HttpPost]
-        public async Task<bool> CreateMapAsync(string name, visibility visbility, MapType type)
+        public async Task<IActionResult> CreateMapAsync(string name, visibility visbility, MapType type)
         {
             user user = await _userManager.GetUserAsync(User); // get user's all data
-            if (user == null)
-            {
-                return false;
-            }
 
             if (string.IsNullOrEmpty(name))
             {
-                return false;
+                TempData["errMsg"] = "some fileds are required.";
+                return RedirectToAction("Index", "Map");
             }
             else
             {
@@ -77,16 +73,60 @@ namespace MyMap.Controllers
                 _context.SaveChanges();
             }
 
-            return true;
+            return RedirectToAction("Index","Map");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditMapAsync(long map_id,string name, visibility mapVisbility, MapType type)
+        {
+            user user = await _userManager.GetUserAsync(User); // get user's all data
+
+            if (string.IsNullOrEmpty(name))
+            {
+                TempData["errMsg"] = "some fileds are required.";
+                return RedirectToAction("Index", "Map");
+            }
+            else
+            {
+                var thisMap = _context.mapModels.FirstOrDefault(x => x.id == map_id);
+                if (thisMap == null)
+                {
+                    TempData["errMsg"] = "this map not found , please try again.";
+                    return RedirectToAction("Index", "Map");
+                }
+                thisMap.name = name;
+                thisMap.visbility = mapVisbility;
+                thisMap.type = type;
+                thisMap.edit_time = DateTime.Now;
+
+                _context.mapModels.Update(thisMap);
+                _context.SaveChanges();
+            }
+
+            return RedirectToAction("Index", "Map");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteMapAsync(long map_id)
+        {
+            user user = await _userManager.GetUserAsync(User); // get user's all data
+
+            var thisMap = _context.mapModels.FirstOrDefault(x => x.id == map_id);
+            if (thisMap == null)
+            {
+                TempData["errMsg"] = "this map not found , please try again.";
+                return RedirectToAction("Index", "Map");
+            }
+
+            _context.mapModels.Remove(thisMap);
+            _context.SaveChanges();
+
+            return RedirectToAction("Index", "Map");
         }
 
         public async Task<IActionResult> InfoAsync(long id)
         {
             user user = await _userManager.GetUserAsync(User); // get user's all data
-            if (user == null)
-            {
-                return LocalRedirect("/Identity/Account/Login");
-            }
 
             var mapPlaceLists = _context.map_placeModels
                 .Where(x => x.map_id == id)
@@ -123,15 +163,11 @@ namespace MyMap.Controllers
         public async Task<IActionResult> CreateMapPlaceAsync(long map_id, [FromForm] List<IFormFile>? thumbail, string name, string description, MapPlaceType type, int rating, bool haveBeenTo = false, string? coordinate = null, string? location = null)
         {
             user user = await _userManager.GetUserAsync(User); // get user's all data
-            if (user == null)
-            {
-                return LocalRedirect("/Identity/Account/Login");
-            }
 
             if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(description))
             {
                 TempData["errMsg"] = "some fileds are required.";
-                return RedirectToAction("Info","Map");
+                return RedirectToAction("Info", "Map");
             }
             else
             {
@@ -158,17 +194,13 @@ namespace MyMap.Controllers
                 _context.SaveChanges();
             }
 
-            return RedirectToAction("Info","Map");
+            return RedirectToAction("Info", "Map");
         }
 
         [HttpPost]
         public async Task<bool> CreateMapPlaceTalksAsync(long map_place_id, string message)
         {
             user user = await _userManager.GetUserAsync(User); // get user's all data
-            if (user == null)
-            {
-                return false;
-            }
 
             if (string.IsNullOrEmpty(message))
             {
@@ -194,11 +226,6 @@ namespace MyMap.Controllers
         public async Task<List<long>> UploadImagesAsync([FromForm] List<IFormFile> imgs)
         {
             user user = await _userManager.GetUserAsync(User);
-
-            if (user == null)
-            {
-                return null;
-            }
 
             List<long> ids = new List<long>();
 

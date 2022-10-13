@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using MyMap.Models;
 using MyMap.Models.identity;
 using System.ComponentModel.DataAnnotations;
@@ -18,7 +19,9 @@ namespace MyMap.ViewModels.Map
         public long mapId { get; set; }
         public string name { get; set; }
         public MapType type { get; set; }
+        public visibility visibility { get; set; }
         public DateTime createTime { get; set; }
+        public DateTime? editTime { get; set; }
 
     }
 }
