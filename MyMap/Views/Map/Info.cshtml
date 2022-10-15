@@ -1,6 +1,6 @@
 ﻿@model MyMap.ViewModels.Map.MapInfoViewModel
 @{
-    ViewData["Title"] = "Map-" + Model.mapName;
+    ViewData["Title"] = Model.mapName;
 }
 
 @section subHeader {
@@ -54,7 +54,8 @@
                     <td>@place.editTime?.ToString("yyyy/MM/dd hh:mm:ss")</td>
                     <td>@(place.talks == null ? 0 : place.talks.Count()) talks</td>
                     <td>
-                        <a href="/" class="a-no-under-line">
+                        <a href="#editMapModal" class="a-no-under-line editPlaceForm" data-bs-toggle="modal" data-bs-target="#editPlaceModal"
+                   data-placeid="@place.mapPlaceId" data-name="@place.name" data-thumbail="@place.thumbailId" data-location="@place.location" data-coordinate="@place.coordinate" data-description="@place.description" data-type="@place.type" data-rating="@place.rating" data-havebeento="@place.haveBeenTo">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
                                 <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z" />
                                 <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5v11z" />
@@ -78,7 +79,8 @@
 
 
 
-<!-- Modal -->
+<!------- Modal ------->
+<!-- CreatePlaceModal -->
 <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -139,8 +141,75 @@
     </div>
 </div>
 
+<!-- EditPlaceModal -->
+<div class="modal fade" id="editPlaceModal" tabindex="-1" aria-labelledby="editPlaceModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editPlaceModalLabel">Edit Map Place</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editPlaceForm" method="post" enctype="multipart/form-data" asp-controller="Map" asp-action="EditMapPlace">
+                    <div class="mb-3">
+                        <label for="editPlace_thumbail" class="col-form-label">thumbail:</label>
+                        <input type="file" accept="image/*" class="form-control" id="editPlace_thumbail" name="thumbail">
+                        <img id="thumbail_preview" src="#" style="display:none" width="300" height="300" alt="your image" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPlace_name" class="input-required col-form-label">Name:</label>
+                        <input type="text" class="form-control" id="editPlace_name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPlace_location" class="col-form-label input-required">Location:</label>
+                        <input type="text" class="form-control" id="editPlace_location" name="location" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPlace_coordinate" class="col-form-label">Coordinate:</label>
+                        <input type="text" class="form-control" id="editPlace_coordinate" name="coordinate">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPlace_description" class="col-form-label">Description:</label>
+                        <textarea class="form-control" id="editPlace_description" name="description"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPlace_type" class="col-form-label">Type:</label>
+                        <input type="text" class="form-control" id="editPlace_type" name="type">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPlace_rating" class="col-form-label input-required">Rating:</label>
+                        <input type="number" min="0" max="5" step="1" class="form-control" id="editPlace_rating" name="rating" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPlace_haveBeenTo" class="col-form-label">HaveBeenTo:</label>
+                        <div class="form-check form-check-inline">
+                            <input type="radio" id="editPlace_haveBeenTo_true" class="form-check-input" name="haveBeenTo" value="true" checked>
+                            <label class="form-check-label" for="editPlace_haveBeenTo_true">true</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input type="radio" id="editPlace_haveBeenTo_false" class="form-check-input" name="haveBeenTo" value="false">
+                            <label class="form-check-label" for="editPlace_haveBeenTo_false">false</label>
+                        </div>
+                    </div>
+                    <input type="hidden" id="editPlace_placeId" name="placeId" />
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="editMapPlaceForm" class="btn btn-primary">Edit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DeleteMapPlaceModal -->
 @section Scripts {
     <script>
+        let errMsg = '@TempData["errMsg"]';
+        if (errMsg != null && errMsg != '') {
+            alert(errMsg);
+        }
+
         createPlace_thumbail.onchange = evt => {
             const [file] = createPlace_thumbail.files;
             if (file) {
@@ -148,5 +217,25 @@
                 thumbail_preview.src = URL.createObjectURL(file);
             }
         }
+
+        $(".editPlaceForm").click(function () {
+            $("#editPlace_placeId").val($(this).data("placeid"));
+            $("#editPlace_thumbailId").val($(this).data("thumbailid"));
+            $("#editPlace_name").val($(this).data("name"));
+            $("#editPlace_location").val($(this).data("location"));
+            $("#editPlace_coordinate").val($(this).data("coordinate"));
+            $("#editPlace_description").val($(this).data("description"));
+            $("#editPlace_type").val($(this).data("type"));
+            $("#editPlace_rating").val($(this).data("rating"));
+            alert($(this).data("havebeento"));
+            if ($(this).data("havebeento") == "True") {
+                $("#editPlace_haveBeenTo_true").prop("checked", "true");
+                //$("#editPlace_haveBeenTo_false").prop("checked", "false");
+            } else {
+                //$("#editPlace_haveBeenTo_true").prop("checked", "false");
+                $("#editPlace_haveBeenTo_false").prop("checked", "true");
+            }
+
+        })
     </script>
 }

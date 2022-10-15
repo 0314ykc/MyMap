@@ -138,6 +138,12 @@ namespace MyMap.Controllers
                     type = x.type,
                     createTime = x.create_time,
                     editTime = x.edit_time,
+                    coordinate = x.coordinate,
+                    description = x.description,
+                    location = x.location,
+                    haveBeenTo = x.have_been_to,
+                    rating = x.rating,
+                    thumbailId = x.thumbnail_id,
                     talks = x.map_place_talks.Select(y => new PlaceTalkListItem
                     {
                         index = 0,

@@ -18,8 +18,14 @@ namespace MyMap.ViewModels.Map
     {
         public long index { get; set; }
         public long mapPlaceId { get; set; }
+        public long? thumbailId { get; set; }
         public string name { get; set; }
+        public string location { get; set; }
+        public string? coordinate { get; set; }
+        public string description { get; set; }
         public MapPlaceType type { get; set; }
+        public int? rating { get; set; }
+        public bool haveBeenTo { get; set; }
         public DateTime createTime { get; set; }
         public DateTime? editTime { get; set; }
         public List<PlaceTalkListItem> talks { get; set; }
